@@ -87,12 +87,13 @@ Total Recharged: ₹{user['total_recharged']}"""
         query.edit_message_text("⚙️ Admin Panel", reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("➕ Add Country", callback_data="admin_add_country")],
             [InlineKeyboardButton("➕ Add Service", callback_data="admin_add_service")],
-            [InlineKeyboardButton("📋 View Services", callback_data="admin_prices")]
+            [InlineKeyboardButton("📋 View Services", callback_data="admin_prices")],
+            [InlineKeyboardButton("🗺 Manage Services by Country", callback_data="admin_manage_services")]
         ]))
 
     elif data == "admin_add_country" and chat_id == ADMIN_ID:
         context.user_data["admin_action"] = "add_country"
-        query.edit_message_text("देश भेजें इस फॉर्मेट में:\n`India,india`", parse_mode="Markdown")
+        query.edit_message_text("देश भेजें इस फॉर्मेट में:\n`India,22`", parse_mode="Markdown")
 
     elif data == "admin_add_service" and chat_id == ADMIN_ID:
         context.user_data["admin_action"] = "add_service"
@@ -104,3 +105,28 @@ Total Recharged: ₹{user['total_recharged']}"""
             return query.edit_message_text("कोई सर्विस नहीं जोड़ी गई।")
         lines = [f"{s['name']}: ₹{s['price']} | ID: {s['id']}" for s in services]
         query.edit_message_text("Services:\n" + "\n".join(lines))
+
+    elif data == "admin_manage_services" and chat_id == ADMIN_ID:
+        countries = get_all_countries()
+        buttons = [[InlineKeyboardButton(c["name"], callback_data=f"admin_country_{c['id']}")] for c in countries]
+        query.edit_message_text("किस देश की सर्विस देखनी है?", reply_markup=InlineKeyboardMarkup(buttons))
+
+    elif data.startswith("admin_country_") and chat_id == ADMIN_ID:
+        cid = int(data.replace("admin_country_", ""))
+        countries = get_all_countries()
+        cname = next((c["name"] for c in countries if c["id"] == cid), "Unknown")
+
+        from database.models import get_services_by_country_id
+        services = get_services_by_country_id(cid)
+        lines = [f"📱 {s['name']} | ID: `{s['id']}` | ₹{s['price']}" for s in services]
+
+        context.user_data["admin_country_id"] = cid
+        context.user_data["admin_country_name"] = cname
+        context.user_data["admin_action"] = "add_service_to_country"
+
+        buttons = [[InlineKeyboardButton("➕ Add Service", callback_data="admin_add_service_to_country")]]
+        msg = f"देश: *{cname}*\n\n" + "\n".join(lines or ["⚠️ कोई सर्विस नहीं है।"])
+        query.edit_message_text(msg, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(buttons))
+
+    elif data == "admin_add_service_to_country" and chat_id == ADMIN_ID:
+        query.edit_message_text("Send service in format:\n`Name,ID,Price`", parse_mode="Markdown")
