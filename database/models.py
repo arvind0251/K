@@ -3,6 +3,7 @@ from .mongo_client import db
 users = db["users"]
 services = db["services"]
 countries = db["countries"]
+used_utrs = db["used_utrs"]  # नया कलेक्शन
 
 # -------------------------------
 # USER FUNCTIONS
@@ -48,3 +49,13 @@ def add_country(name, code):
 
 def get_all_countries():
     return list(countries.find())
+
+# -------------------------------
+# UTR FUNCTIONS (Anti-Reuse)
+# -------------------------------
+
+def is_utr_used(utr):
+    return used_utrs.find_one({"utr": utr}) is not None
+
+def mark_utr_as_used(utr):
+    used_utrs.insert_one({"utr": utr})
