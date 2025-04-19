@@ -1,0 +1,106 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackContext
+from database.models import get_user, update_user, get_all_countries, get_all_services
+from utils.otp_service import buy_number_and_wait
+from config import QR_CODE_LINK, UPI_ID, ADMIN_ID, SUPPORT_URL
+
+def button_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    chat_id = query.message.chat_id
+    query.answer()
+
+    user = get_user(chat_id)
+
+    if not user:
+        query.edit_message_text("❌ User not found.")
+        return
+
+    data = query.data
+
+    if data == "recharge":
+        context.user_data["awaiting_utr"] = True
+        context.bot.send_photo(
+            chat_id,
+            QR_CODE_LINK,
+            caption=f"Pay ₹20 to:\n`{UPI_ID}`\nफिर UTR यहाँ भेजें।",
+            parse_mode="Markdown"
+        )
+
+    elif data == "profile":
+        msg = f"""👤 {user['name']} | ID: {chat_id}
+Balance: ₹{user['balance']}
+Used: {user['used_numbers']}
+Referral Wallet: ₹{user['referral_wallet']}
+Refers: {user['refers']}
+Total Recharged: ₹{user['total_recharged']}"""
+        query.edit_message_text(msg)
+
+    elif data == "promo_code":
+        context.user_data["awaiting_promo"] = True
+        query.edit_message_text("Apna promo code bheje:")
+
+    elif data == "get_otp":
+        countries = get_all_countries()
+        if not countries:
+            return query.edit_message_text("❌ कोई देश नहीं जोड़ा गया।")
+
+        buttons = [[InlineKeyboardButton(c['name'], callback_data=f"otp_country_{c['code']}")] for c in countries]
+        query.edit_message_text("देश चुनें:", reply_markup=InlineKeyboardMarkup(buttons))
+
+    elif data.startswith("otp_country_"):
+        country_code = data.replace("otp_country_", "")
+        context.user_data["otp_country"] = country_code
+
+        services = get_all_services()
+        if not services:
+            return query.edit_message_text("❌ कोई सर्विस उपलब्ध नहीं है।")
+
+        buttons = [[InlineKeyboardButton(f\"{s['name']} (₹{s['price']})\", callback_data=f\"otp_service_{s['name']}\")] for s in services]
+        query.edit_message_text("सर्विस चुनें:", reply_markup=InlineKeyboardMarkup(buttons))
+
+    elif data.startswith("otp_service_"):
+        service_name = data.replace("otp_service_", "")
+        country_code = context.user_data.get("otp_country")
+
+        services = get_all_services()
+        service = next((s for s in services if s['name'] == service_name), None)
+
+        if not service:
+            return query.edit_message_text("❌ सर्विस नहीं मिली।")
+
+        price = service["price"]
+        if user["balance"] < price:
+            return query.edit_message_text(f"❌ ₹{price} बैलेंस चाहिए।")
+
+        # बैलेंस कम करो, नंबर बढ़ाओ
+        update_user(chat_id, {
+            "balance": user["balance"] - price,
+            "total_numbers": user["total_numbers"] + 1
+        })
+
+        query.edit_message_text("🔄 नंबर प्राप्त किया जा रहा है...")
+
+        # OTP प्रोसेस शुरू करो
+        buy_number_and_wait(context, chat_id, country_code, service["id"], price)
+
+    elif data == "admin_panel" and chat_id == ADMIN_ID:
+        query.edit_message_text("⚙️ Admin Panel", reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("➕ Add Country", callback_data="admin_add_country")],
+            [InlineKeyboardButton("➕ Add Service", callback_data="admin_add_service")],
+            [InlineKeyboardButton("📋 View Services", callback_data="admin_prices")]
+        ]))
+
+    elif data == "admin_add_country" and chat_id == ADMIN_ID:
+        context.user_data["admin_action"] = "add_country"
+        query.edit_message_text("देश भेजें इस फॉर्मेट में:\n`India,india`", parse_mode="Markdown")
+
+    elif data == "admin_add_service" and chat_id == ADMIN_ID:
+        context.user_data["admin_action"] = "add_service"
+        query.edit_message_text("सर्विस भेजें इस फॉर्मेट में:\n`Telegram,telegram,20`", parse_mode="Markdown")
+
+    elif data == "admin_prices" and chat_id == ADMIN_ID:
+        services = get_all_services()
+        if not services:
+            return query.edit_message_text("कोई सर्विस नहीं जोड़ी गई।")
+        lines = [f\"{s['name']}: ₹{s['price']} | ID: {s['id']}\" for s in services]
+        query.edit_message_text(\"Services:\\n\" + \"\\n\".join(lines))
