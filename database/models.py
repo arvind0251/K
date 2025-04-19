@@ -3,7 +3,7 @@ from .mongo_client import db
 users = db["users"]
 services = db["services"]
 countries = db["countries"]
-used_utrs = db["used_utrs"]  # नया कलेक्शन
+used_utrs = db["used_utrs"]
 
 # -------------------------------
 # USER FUNCTIONS
@@ -37,13 +37,13 @@ def get_service_by_name(name):
     return services.find_one({"name": name})
 
 # -------------------------------
-# COUNTRY FUNCTIONS
+# COUNTRY FUNCTIONS (Updated)
 # -------------------------------
 
-def add_country(name, code):
+def add_country(name, code, cid):
     countries.update_one(
-        {"name": name},
-        {"$set": {"name": name, "code": code}},
+        {"code": code},
+        {"$set": {"name": name, "code": code, "id": cid}},
         upsert=True
     )
 
