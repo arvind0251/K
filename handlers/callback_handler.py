@@ -55,7 +55,7 @@ Total Recharged: ₹{user['total_recharged']}"""
         if not services:
             return query.edit_message_text("❌ कोई सर्विस उपलब्ध नहीं है।")
 
-        buttons = [[InlineKeyboardButton(f\"{s['name']} (₹{s['price']})\", callback_data=f\"otp_service_{s['name']}\")] for s in services]
+        buttons = [[InlineKeyboardButton(f"{s['name']} (₹{s['price']})", callback_data=f"otp_service_{s['name']}")] for s in services]
         query.edit_message_text("सर्विस चुनें:", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif data.startswith("otp_service_"):
