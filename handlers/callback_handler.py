@@ -102,5 +102,5 @@ Total Recharged: ₹{user['total_recharged']}"""
         services = get_all_services()
         if not services:
             return query.edit_message_text("कोई सर्विस नहीं जोड़ी गई।")
-        lines = [f\"{s['name']}: ₹{s['price']} | ID: {s['id']}\" for s in services]
+        lines = [f"{s['name']}: ₹{s['price']} | ID: {s['id']}" for s in services]
         query.edit_message_text(\"Services:\\n\" + \"\\n\".join(lines))
