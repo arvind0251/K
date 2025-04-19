@@ -4,6 +4,7 @@ users = db["users"]
 services = db["services"]
 countries = db["countries"]
 used_utrs = db["used_utrs"]
+promo_codes = db["promo_codes"]  # ✅ Added
 
 # -------------------------------
 # USER FUNCTIONS
@@ -23,10 +24,19 @@ def update_user(chat_id, updates):
 # SERVICE FUNCTIONS
 # -------------------------------
 
-def add_service(name, sid, price):
+def add_service(name, sid, price, cid=None, cname=None):
+    service_data = {
+        "name": name,
+        "id": sid,
+        "price": int(price)
+    }
+    if cid and cname:
+        service_data["country_id"] = cid
+        service_data["country_name"] = cname
+
     services.update_one(
-        {"name": name},
-        {"$set": {"id": sid, "price": int(price), "name": name}},
+        {"name": name, "country_id": cid} if cid else {"name": name},
+        {"$set": service_data},
         upsert=True
     )
 
@@ -36,8 +46,11 @@ def get_all_services():
 def get_service_by_name(name):
     return services.find_one({"name": name})
 
+def get_services_by_country_id(cid):
+    return list(services.find({"country_id": cid}))
+
 # -------------------------------
-# COUNTRY FUNCTIONS (Updated)
+# COUNTRY FUNCTIONS
 # -------------------------------
 
 def add_country(name, code, cid):
@@ -59,3 +72,17 @@ def is_utr_used(utr):
 
 def mark_utr_as_used(utr):
     used_utrs.insert_one({"utr": utr})
+
+# -------------------------------
+# PROMO CODE FUNCTIONS ✅
+# -------------------------------
+
+def add_promo(code, amount):
+    promo_codes.update_one(
+        {"code": code.upper()},
+        {"$set": {"code": code.upper(), "amount": amount}},
+        upsert=True
+    )
+
+def get_promo(code):
+    return promo_codes.find_one({"code": code.upper()})
