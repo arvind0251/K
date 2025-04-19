@@ -17,7 +17,7 @@ ADMIN_ID = 7459732827
 SUPPORT_URL = "https://t.me/akotpshop"
 
 # MongoDB Connection URI
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = "mongodb+srv://KARTIK:KARTIK.23@kartik.flltt.mongodb.net/?retryWrites=true&w=majority&appName=KARTIK"
 
 # Emoji Constants for Button UI
 EMOJIS = {
