@@ -43,7 +43,7 @@ Total Recharged: ₹{user['total_recharged']}"""
         countries = get_all_countries()
         if not countries:
             return query.edit_message_text("❌ कोई देश नहीं जोड़ा गया।")
-        buttons = [[InlineKeyboardButton(c['name'], callback_data=f"otp_country_{c['id']}" for c in countries]
+        buttons = [[InlineKeyboardButton(c['name'], callback_data=f"otp_country_{c['id']}")] for c in countries]
         query.edit_message_text("देश चुनें:", reply_markup=InlineKeyboardMarkup(buttons))
 
     elif data.startswith("otp_country_"):
