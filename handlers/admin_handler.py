@@ -15,11 +15,11 @@ def admin_text(update: Update, context: CallbackContext):
     if action == "add_country":
         try:
             name, cid = [x.strip() for x in text.split(",")]
-            add_country(name, int(cid))
-            update.message.reply_text(f"✅ Country Added:\nName: {name}\nID: {cid}")
+            add_country(name, cid)
+            update.message.reply_text(f"✅ Country Added:\nName: {name}\nCode: {cid}")
         except Exception as e:
             print(f"Error in add_country: {e}")
-            update.message.reply_text("❌ Format error. सही फॉर्मेट: India,22")
+            update.message.reply_text("❌ Format error. सही फॉर्मेट: India,in")
 
     elif action == "add_service_to_country":
         try:
