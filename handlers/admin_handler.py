@@ -9,40 +9,36 @@ def admin_text(update: Update, context: CallbackContext):
         return
 
     action = context.user_data.get("admin_action")
-    text = update.message.text.strip()
+    text   = update.message.text.strip()
 
     if action == "add_country":
         try:
+            # Country के लिए सिर्फ Name और ID चाहिए
             name, cid = [x.strip() for x in text.split(",")]
-            add_country(name, int(cid))
-            update.message.reply_text(f"✅ Country Added:\nName: {name}\nID: {cid}")
+            add_country(name, cid)
+            update.message.reply_text(f"✅ Country added: {name} (ID: {cid})")
         except:
-            update.message.reply_text("❌ Format: India,22")
-
-    elif action == "add_service":
-        try:
-            name, sid, price = [x.strip() for x in text.split(",")]
-            add_service(name, sid, int(price))
-            update.message.reply_text(f"✅ Service Added: {name} ₹{price}")
-        except:
-            update.message.reply_text("❌ Format: Telegram,telegram,20")
+            update.message.reply_text("❌ Format: Name,ID (e.g. India,IN)")
 
     elif action == "add_service_to_country":
         try:
+            # Service के लिए Name, ServiceID, Price
             name, sid, price = [x.strip() for x in text.split(",")]
-            cid = context.user_data.get("admin_country_id")
+            cid   = context.user_data.get("admin_country_id")
             cname = context.user_data.get("admin_country_name")
+
             add_service(name, sid, int(price), cid, cname)
-            update.message.reply_text(f"✅ Service Added to {cname}: {name} ₹{price}")
+            update.message.reply_text(f"✅ Service added to {cname}: {name} ₹{price}")
         except:
-            update.message.reply_text("❌ Format: Name,ID,Price")
+            update.message.reply_text("❌ Format: Name,ID,Price (e.g. Telegram,telegram,20)")
 
     elif action == "add_promo":
         try:
             code, amount = [x.strip() for x in text.split(",")]
             add_promo(code, int(amount))
-            update.message.reply_text(f"✅ Promo Added: {code} ₹{amount}")
+            update.message.reply_text(f"✅ Promo added: {code} ₹{amount}")
         except:
             update.message.reply_text("❌ Format: CODE,amount (e.g. WELCOME100,10)")
 
+    # काम होने के बाद action साफ़ कर दें
     context.user_data.pop("admin_action", None)
