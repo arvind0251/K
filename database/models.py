@@ -44,3 +44,11 @@ def add_promo(code, amount):
 
 def get_promo(code):
     return promos.find_one({"code": code.upper()})
+    # --- UTR Validation ---
+utr_records = db.utr_records
+
+def is_utr_used(utr):
+    return utr_records.find_one({"utr": utr}) is not None
+
+def mark_utr_as_used(utr):
+    utr_records.insert_one({"utr": utr})
