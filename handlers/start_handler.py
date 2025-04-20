@@ -8,6 +8,7 @@ def start(update: Update, context: CallbackContext):
     name = update.effective_user.first_name
     args = context.args
 
+    # यूज़र डेटा प्राप्त करें या नया यूज़र बनाएं
     user = get_user(chat_id)
 
     if not user:
@@ -24,6 +25,7 @@ def start(update: Update, context: CallbackContext):
             "promo_used": None
         }
 
+        # Referral सिस्टम प्रोसेस करें
         if args:
             try:
                 ref_id = int(args[0])
@@ -32,17 +34,21 @@ def start(update: Update, context: CallbackContext):
                     if ref_user:
                         new_user["referred_by"] = ref_id
                         update_user(ref_id, {"refers": ref_user.get("refers", 0) + 1})
-            except:
-                pass
+            except Exception as e:
+                print(f"Referral processing error: {e}")
 
         create_user(chat_id, new_user)
         user = new_user
 
-    msg = f"""👋 Hello {user['name']}!
-💰 Balance: ₹{user['balance']:.2f}
-📦 Total Numbers: {user['total_numbers']}
-✅ Used: {user['used_numbers']}"""
+    # यूज़र को welcome और summary मैसेज भेजें
+    msg = (
+        f"👋 Hello {user['name']}!\n"
+        f"💰 Balance: ₹{user['balance']:.2f}\n"
+        f"📦 Total Numbers: {user['total_numbers']}\n"
+        f"✅ Used: {user['used_numbers']}"
+    )
 
+    # बटन मेन्यू तैयार करें
     buttons = [
         [InlineKeyboardButton(f"{EMOJIS['get_otp']} Get OTP", callback_data="get_otp")],
         [InlineKeyboardButton(f"{EMOJIS['recharge']} Recharge", callback_data="recharge")],
@@ -51,6 +57,7 @@ def start(update: Update, context: CallbackContext):
         [InlineKeyboardButton(f"{EMOJIS['support']} Support", url=SUPPORT_URL)]
     ]
 
+    # एडमिन के लिए एडमिन पैनल का बटन
     if chat_id == ADMIN_ID:
         buttons.append([InlineKeyboardButton(f"{EMOJIS['admin_panel']} Admin Panel", callback_data="admin_panel")])
 
