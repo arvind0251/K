@@ -53,12 +53,12 @@ def get_services_by_country_id(cid):
 # COUNTRY FUNCTIONS
 # -------------------------------
 
-+def add_country(name, cid):
-+    countries.update_one(
-+        {"id": cid},
-+        {"$set": {"name": name, "id": cid}},
-+        upsert=True
-+    )
+def add_country(name, cid):
+    countries.update_one(
+        {"id": cid},
+        {"$set": {"name": name, "id": cid}},
+        upsert=True
+    )
 
 def get_all_countries():
     return list(countries.find())
