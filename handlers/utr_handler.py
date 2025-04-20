@@ -21,18 +21,19 @@ def utr_handler(update: Update, context: CallbackContext):
             context.user_data.pop("awaiting_utr", None)
             return
 
-        # Step 2: verify with BharatPe
-        if verify_utr_with_bharatpay(utr):
+        # Step 2: verify with BharatPe and get actual amount
+        amount = verify_utr_with_bharatpay(utr)
+        if amount > 0:
             mark_utr_as_used(utr)  # mark it as used now
 
-            # ₹20 जोड़ो और referral wallet भी अपडेट करो
-            new_balance = user["balance"] + 20
+            # Recharge with actual amount
+            new_balance = user["balance"] + amount
             update_data = {
                 "balance": new_balance,
-                "total_recharged": user.get("total_recharged", 0) + 20
+                "total_recharged": user.get("total_recharged", 0) + amount
             }
 
-            # रेफर करने वाले को ₹0.60 कमीशन दो
+            # Referral reward (optional)
             ref_id = user.get("referred_by")
             if ref_id:
                 ref_user = get_user(ref_id)
@@ -41,9 +42,8 @@ def utr_handler(update: Update, context: CallbackContext):
                     update_user(ref_id, {"referral_wallet": ref_wallet})
 
             update_user(chat_id, update_data)
-            update.message.reply_text("✅ ₹20 रिचार्ज सफल रहा!")
+            update.message.reply_text(f"✅ ₹{amount} रिचार्ज सफल रहा!")
         else:
-            update.message.reply_text("❌ UTR वेरिफिकेशन फेल हुआ।")
+            update.message.reply_text("❌ UTR वेरिफिकेशन फेल हुआ या राशि अमान्य है।")
 
         context.user_data.pop("awaiting_utr", None)
-
