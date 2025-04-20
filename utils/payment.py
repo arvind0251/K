@@ -3,7 +3,7 @@ from config import ACCESS_TOKEN, MERCHANT_ID
 
 def verify_utr_with_bharatpay(utr: str) -> int:
     try:
-        url = f"https://api.bharatpe.in/v1/transaction/fetch/merchant/{MERCHANT_ID}?txnType=PAYMENT&limit=20"
+        url = f"https://api.bharatpe.in/v1/transaction/fetch/merchant/{MERCHANT_ID}"
         headers = {
             "Authorization": f"Bearer {ACCESS_TOKEN}",
             "Accept": "application/json"
