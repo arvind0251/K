@@ -10,6 +10,11 @@ def verify_utr_with_bharatpay(utr: str) -> int:
         }
 
         response = requests.get(url, headers=headers, timeout=10)
+
+        # ADD THIS: Print full raw API response
+        print("FULL API RAW RESPONSE:")
+        print(response.text)
+
         data = response.json()
 
         # DEBUG: Show what UTR was received and what transactions are fetched
