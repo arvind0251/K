@@ -1,9 +1,7 @@
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from handlers.start_handler import start
 from handlers.callback_handler import button_handler
-from handlers.promo_handler import promo_code_handler
-from handlers.utr_handler import utr_handler
-from handlers.admin_handler import admin_text
+from handlers.unified_handler import unified_message_handler
 from config import BOT_TOKEN
 
 def main():
@@ -12,9 +10,7 @@ def main():
 
     dp.add_handler(CommandHandler("start", start, pass_args=True))
     dp.add_handler(CallbackQueryHandler(button_handler))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, promo_code_handler))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, utr_handler))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, admin_text))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, unified_message_handler))
 
     updater.start_polling()
     updater.idle()
