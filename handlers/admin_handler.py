@@ -3,22 +3,26 @@ from telegram.ext import CallbackContext
 from database.models import add_country, add_service, add_promo
 from config import ADMIN_ID
 
-def admin_text(update: Update, context: CallbackContext):
-    chat_id = update.message.chat_id
-    if chat_id != ADMIN_ID:
-        return
-
-    action = context.user_data.get("admin_action")
-    text   = update.message.text.strip()
-
-    if action == "add_country":
-        try:
-            # Country के लिए सिर्फ Name और ID चाहिए
-            name, cid = [x.strip() for x in text.split(",")]
-            add_country(name, cid)
-            update.message.reply_text(f"✅ Country added: {name} (ID: {cid})")
-        except:
-            update.message.reply_text("❌ Format: Name,ID (e.g. India,IN)")
+#admin 
+@@ def admin_text(update: Update, context: CallbackContext):
+-    if action == "add_country":
+-        try:
+-            name, cid = [x.strip() for x in text.split(",")]
+-            add_country(name, int(cid))
+-            update.message.reply_text(f"✅ Country Added:\nName: {name}\nID: {cid}")
+-        except:
+-            update.message.reply_text("❌ Format: India,22")
++    if action == "add_country":
++        try:
++            name, cid = [x.strip() for x in text.split(",")]
++            add_country(name, int(cid))
++            update.message.reply_text(
++                f"✅ Country Added:\nName: {name}\nID: {cid}"
++            )
++        except:
++            update.message.reply_text(
++                "❌ Format: Name,ID (e.g. India,22)"
++            )
 
     elif action == "add_service_to_country":
         try:
