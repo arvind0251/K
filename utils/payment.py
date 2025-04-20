@@ -1,29 +1,25 @@
 import requests
-import json
 from config import ACCESS_TOKEN, MERCHANT_ID
 
-def verify_utr_with_bharatpay(utr):
-    """
-    BharatPe API के माध्यम से UTR नंबर को वेरिफाई करता है।
-    सफल होने पर True लौटाता है, अन्यथा False।
-    """
+def verify_utr_with_bharatpay(utr: str) -> bool:
     try:
-        url = "https://api.bharatpe.in/v1/payment/verify"
+        url = f"https://api.bharatpe.in/v1/transaction/fetch/merchant/{MERCHANT_ID}?txnType=PAYMENT&limit=20"
+
         headers = {
             "Authorization": f"Bearer {ACCESS_TOKEN}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "utr": utr,
-            "merchant_id": MERCHANT_ID
+            "Accept": "application/json"
         }
 
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        result = response.json()
+        response = requests.get(url, headers=headers, timeout=10)
+        data = response.json()
 
-        # status == "PAID" हो तो ही सही माने
-        return result.get("status") == "PAID"
+        for txn in data.get("data", []):
+            utr_in_txn = str(txn.get("utr", "")).lower()
+            if str(utr).lower() in utr_in_txn:
+                return True
+
+        return False
 
     except Exception as e:
-        print(f"UTR Verification Error: {e}")
+        print(f"UTR verify error: {e}")
         return False
